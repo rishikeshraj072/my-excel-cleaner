@@ -1,0 +1,444 @@
+/* Global Box-Sizing Reset */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* Global CSS Variables for Modern Solid Enterprise UI (Microsoft Azure/Office style) */
+:root {
+    --bg-dark: #f3f4f6; /* Clean flat light gray background */
+    --bg-card: #ffffff; /* Solid White cards */
+    --primary: #0078d4; /* Microsoft Royal Blue */
+    --primary-gradient: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+    --secondary: #0078d4; /* Royal Blue */
+    --success: #107c41; /* Microsoft Excel Green */
+    --danger: #a80000; /* Dark Red error color */
+    --border-color: #e2e8f0; /* Crisp slate-200 borders */
+    --text-main: #242424; /* Dark slate-800 for main text contrast */
+    --text-muted: #595959; /* Medium gray subtext */
+    --font-inter: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+    --font-outfit: 'Segoe UI', system-ui, sans-serif;
+    --radius-lg: 8px; /* Modern square-cut rounded corners */
+    --radius-md: 4px;
+    --transition-smooth: all 0.15s ease-in-out;
+}
+
+/* Base resets & styles */
+body {
+    background-color: var(--bg-dark);
+    font-family: var(--font-inter);
+    color: var(--text-main);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Background Mesh Gradients - Disabled for Flat Clean Look */
+.bg-mesh {
+    display: none;
+}
+
+/* Glassmorphism Panel styles - Converted to Solid Cards */
+.glass-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: var(--transition-smooth);
+}
+
+.glass-panel:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+}
+
+/* App Layout Wrapper */
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+
+/* Sidebar Styling - Solid Dark Slate */
+#sidebar {
+    min-width: 280px;
+    max-width: 280px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background-color: #0f172a; /* Solid Slate-900 */
+    border-right: 1px solid #1e293b;
+    border-left: none;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 2rem 1.5rem;
+}
+
+#sidebar .sidebar-header {
+    border-bottom: 1px solid #1e293b;
+    padding-bottom: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+#sidebar .logo {
+    font-family: var(--font-outfit);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: -0.5px;
+}
+
+#sidebar .logo span {
+    color: #ffffff;
+}
+
+#sidebar .logo span span {
+    color: #0078d4;
+}
+
+#sidebar .logo-icon {
+    font-size: 1.8rem;
+    color: #0078d4;
+}
+
+#sidebar ul.components {
+    margin-bottom: auto;
+}
+
+#sidebar ul li {
+    margin-bottom: 0.25rem;
+}
+
+#sidebar ul li a {
+    padding: 0.75rem 1.2rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #94a3b8; /* Gray-400 */
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: var(--transition-smooth);
+    font-weight: 500;
+}
+
+#sidebar ul li a:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+    transform: none;
+}
+
+#sidebar ul li.active a {
+    background: #0078d4;
+    color: #ffffff;
+    box-shadow: none;
+}
+
+#sidebar .sidebar-footer {
+    border-top: 1px solid #1e293b;
+    padding-top: 1.5rem;
+}
+
+#sidebar .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#sidebar .user-avatar {
+    font-size: 2.2rem;
+    color: #94a3b8;
+}
+
+#sidebar .user-text {
+    display: flex;
+    flex-direction: column;
+}
+
+#sidebar .user-text .username {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #ffffff;
+}
+
+#sidebar .user-text .role {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+#sidebar .btn-logout {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+#sidebar .btn-logout:hover {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+/* Content Area */
+#content {
+    flex-grow: 1;
+    padding: 2.5rem;
+    min-height: 100vh;
+    transition: var(--transition-smooth);
+    overflow-x: auto;
+}
+
+#content.full-width {
+    width: 100%;
+    margin-left: 0;
+    padding: 1.5rem;
+}
+
+/* Premium Buttons styling (Microsoft Solid Blue) */
+.btn-premium {
+    background: #0078d4;
+    border: 1px solid #005a9e;
+    color: white;
+    font-family: var(--font-outfit);
+    border-radius: var(--radius-md);
+    box-shadow: none;
+    transition: var(--transition-smooth);
+}
+
+.btn-premium:hover {
+    transform: none;
+    box-shadow: none;
+    background: #005a9e;
+    color: white;
+}
+
+.btn-premium:active {
+    transform: none;
+}
+
+/* Light Solid Input Forms styling */
+.glass-input {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: var(--text-main) !important;
+    border-radius: var(--radius-md);
+    padding: 0.6rem 0.8rem;
+    transition: var(--transition-smooth);
+    font-size: 0.95rem;
+}
+
+.glass-input:focus {
+    background: #ffffff;
+    border-color: #0078d4;
+    box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+    outline: none;
+}
+
+.glass-input::placeholder {
+    color: #94a3b8;
+}
+
+.glass-input-addon {
+    background: #f8f9fa;
+    border: 1px solid #cbd5e1;
+    color: var(--text-muted);
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+/* Auth Cards style */
+.auth-container {
+    min-height: 85vh;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 480px;
+    border-radius: var(--radius-lg);
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.auth-logo {
+    font-size: 3.5rem;
+    color: #0078d4;
+}
+
+.auth-link {
+    text-decoration: none;
+    transition: var(--transition-smooth);
+}
+
+.auth-link:hover {
+    color: #005a9e !important;
+    text-shadow: none;
+}
+
+/* Table Design for Solid Light Mode */
+.table-responsive {
+    border-radius: var(--radius-lg);
+    overflow-x: auto !important;
+    border: 1px solid var(--border-color);
+    background: #ffffff;
+}
+
+.table {
+    margin-bottom: 0;
+    color: var(--text-main) !important;
+    background: #ffffff !important;
+    font-size: 0.95rem;
+}
+
+.table-header-row {
+    background-color: #f8f9fa !important;
+    border-bottom: 2px solid var(--border-color) !important;
+    color: #242424 !important;
+    font-weight: 600;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f5f9 !important;
+    transition: var(--transition-smooth);
+}
+
+.table td, .table th {
+    padding: 0.9rem 1.1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+/* Upload zone dashed box styling */
+.upload-zone {
+    border-color: #cbd5e1 !important;
+    background: #f8f9fa;
+    transition: var(--transition-smooth);
+    color: var(--text-main);
+}
+
+.upload-zone:hover {
+    border-color: #0078d4 !important;
+    background: rgba(0, 120, 212, 0.02);
+}
+
+/* Flash Messages */
+.flash-messages {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 1050;
+    max-width: 400px;
+    width: 100%;
+}
+
+.alert {
+    border-radius: var(--radius-md) !important;
+    border: 1px solid var(--border-color) !important;
+    border-left: 4px solid var(--primary) !important;
+    background: #ffffff !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.alert-success { border-left-color: var(--success) !important; }
+.alert-danger { border-left-color: var(--danger) !important; }
+.alert-warning { border-left-color: #ffb300 !important; }
+
+/* Custom Modal adjustments */
+.modal-content {
+    background-color: #ffffff !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Custom Micro-animations */
+.animate-fade-in {
+    animation: fadeIn 0.15s ease-out forwards;
+}
+
+.animate-slide-in {
+    animation: slideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-pulse {
+    animation: none; /* Removed for flat solid feel */
+}
+
+/* Metric summary cards style */
+.metric-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: var(--transition-smooth);
+}
+.metric-card:hover {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+.metric-card .metric-info .metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+.metric-card .metric-info .metric-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.metric-card .metric-icon {
+    font-size: 2.2rem;
+    color: #94a3b8;
+}
+.metric-card .metric-icon.text-excel {
+    color: #107c41;
+}
+.metric-card .metric-icon.text-blue {
+    color: #0078d4;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Responsive adjustment rules */
+@media (max-width: 768px) {
+    #sidebar {
+        display: none;
+    }
+    #content {
+        width: 100%;
+        margin-left: 0;
+        padding: 1rem;
+    }
+}

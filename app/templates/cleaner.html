@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}Data Cleaner - Excel Cleaner{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 animate-fade-in">
+    <!-- Header -->
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <h1 class="font-outfit fw-bold text-dark mb-1">Data Cleaner</h1>
+            <p class="text-muted">Enforce data integrity by removing records that are null, duplicate, or malformed</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Configuration Card -->
+        <div class="col-lg-5">
+            <div class="card glass-panel">
+                <div class="card-body p-4">
+                    <h5 class="font-outfit fw-semibold text-primary mb-4">
+                        <i class="fa-solid fa-broom me-2"></i> Configure Cleaning Rule
+                    </h5>
+                    
+                    <form id="cleanerForm">
+                        <!-- Column Selector (Master + Custom Registry Fields) -->
+                        <div class="mb-3">
+                            <label for="cleanColumn" class="form-label text-muted small fw-semibold">Target Column</label>
+                            <select class="form-select glass-input text-dark" id="cleanColumn" name="column" required>
+                                <option value="">-- Choose Column --</option>
+                                <optgroup label="Master Relational Columns">
+                                    <option value="name">Name</option>
+                                    <option value="email">Email</option>
+                                    <option value="phone">Phone</option>
+                                    <option value="company">Company</option>
+                                    <option value="city">City</option>
+                                    <option value="state">State</option>
+                                    <option value="country">Country</option>
+                                </optgroup>
+                                {% if custom_fields %}
+                                <optgroup label="Custom Fields Registry">
+                                    {% for field in custom_fields %}
+                                    <option value="{{ field.id }}">{{ field.field_name }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                                {% endif %}
+                            </select>
+                        </div>
+                        
+                        <!-- Rule Selector -->
+                        <div class="mb-4">
+                            <label for="cleanRule" class="form-label text-muted small fw-semibold">Integrity Condition</label>
+                            <select class="form-select glass-input text-dark" id="cleanRule" name="rule" required>
+                                <option value="">-- Choose Condition --</option>
+                                <option value="not_null">Not Null (Remove empty cells)</option>
+                                <option value="no_duplicate">Not Duplicate (Enforce uniqueness)</option>
+                                <option value="valid_email">Valid Email Address Format</option>
+                                <option value="valid_phone">Valid Phone Number (Min 7 digits)</option>
+                            </select>
+                        </div>
+
+                        <!-- Rule Helper Notice Board -->
+                        <div class="card bg-light border-light-subtle text-muted mb-4 d-none" id="ruleNoticeCard">
+                            <div class="card-body p-3">
+                                <span class="fw-semibold small text-primary d-block mb-1" id="ruleNoticeTitle">Rule Description</span>
+                                <span class="small" id="ruleNoticeText">Details will show up here...</span>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-primary btn-premium w-100 py-3 fw-bold" id="triggerCleanBtn">
+                            <i class="fa-solid fa-wand-magic-sparkles me-2"></i> Run Cleaner Pipeline
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description Board / Rules Guide -->
+        <div class="col-lg-7">
+            <div class="card glass-panel h-100">
+                <div class="card-body p-4">
+                    <h5 class="font-outfit fw-semibold text-dark mb-4">
+                        <i class="fa-solid fa-circle-question text-secondary me-2"></i> Data Cleaning Rulebook
+                    </h5>
+                    
+                    <div class="accordion accordion-flush" id="cleaningGuide">
+                        <div class="accordion-item bg-transparent border-bottom border-light-subtle py-2">
+                            <h2 class="accordion-header bg-transparent">
+                                <button class="accordion-button collapsed bg-transparent text-dark fw-bold font-outfit" type="button" data-bs-toggle="collapse" data-bs-target="#guideNotNull">
+                                    Not Null Constraint
+                                </button>
+                            </h2>
+                            <div id="guideNotNull" class="accordion-collapse collapse" data-bs-parent="#cleaningGuide">
+                                <div class="accordion-body text-muted small">
+                                    Scanning the selected target column, the cleaner deletes any records where the value is missing, empty, or populated with standard null representations (e.g. <code>NaN</code>, <code>null</code>, or blank spaces).
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item bg-transparent border-bottom border-light-subtle py-2">
+                            <h2 class="accordion-header bg-transparent">
+                                <button class="accordion-button collapsed bg-transparent text-dark fw-bold font-outfit" type="button" data-bs-toggle="collapse" data-bs-target="#guideNoDuplicate">
+                                    Not Duplicate (Uniqueness)
+                                </button>
+                            </h2>
+                            <div id="guideNoDuplicate" class="accordion-collapse collapse" data-bs-parent="#cleaningGuide">
+                                <div class="accordion-body text-muted small">
+                                    Filters the selected column for duplicate entries. The cleaner retains the first row encountered and permanently removes all subsequent rows containing matching values (case-insensitive comparison).
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item bg-transparent border-bottom border-light-subtle py-2">
+                            <h2 class="accordion-header bg-transparent">
+                                <button class="accordion-button collapsed bg-transparent text-dark fw-bold font-outfit" type="button" data-bs-toggle="collapse" data-bs-target="#guideEmail">
+                                    Valid Email Format
+                                </button>
+                            </h2>
+                            <div id="guideEmail" class="accordion-collapse collapse" data-bs-parent="#cleaningGuide">
+                                <div class="accordion-body text-muted small">
+                                    Applies regular expression patterns to confirm standard email format (e.g. <code>username@domain.ext</code>). Deletes any records containing non-empty values that violate this format.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item bg-transparent py-2">
+                            <h2 class="accordion-header bg-transparent">
+                                <button class="accordion-button collapsed bg-transparent text-dark fw-bold font-outfit" type="button" data-bs-toggle="collapse" data-bs-target="#guidePhone">
+                                    Valid Phone Number
+                                </button>
+                            </h2>
+                            <div id="guidePhone" class="accordion-collapse collapse" data-bs-parent="#cleaningGuide">
+                                <div class="accordion-body text-muted small">
+                                    Extracts digits from the selected field and validates that it contains at least 7 numbers. Any record containing non-empty values with fewer digits will be deleted from the database.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block modals %}
+<!-- Deletion Warning Confirmation Modal -->
+<div class="modal fade" id="confirmCleanModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-panel border-0">
+            <div class="modal-header border-bottom border-light-subtle">
+                <h5 class="modal-title font-outfit fw-bold text-danger">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i> Permanent Data Deletion Warning
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <i class="fa-solid fa-trash-can-arrow-up text-danger fs-1 mb-3 animate-pulse"></i>
+                <h5 class="fw-bold text-dark mb-2">Are you sure?</h5>
+                <p class="text-muted small">
+                    This cleaning operation will permanently delete records that violate the selected integrity rule from the database. This action **cannot** be undone.
+                </p>
+                <div class="alert alert-secondary text-start py-2 small" id="confirmDetails">
+                    <!-- Resolved dynamically in JS -->
+                </div>
+            </div>
+            <div class="modal-footer border-top border-light-subtle">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger px-4" id="confirmCleanExecuteBtn">
+                    Delete Records & Clean
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const cleanColumn = document.getElementById("cleanColumn");
+    const cleanRule = document.getElementById("cleanRule");
+    const ruleNoticeCard = document.getElementById("ruleNoticeCard");
+    const ruleNoticeTitle = document.getElementById("ruleNoticeTitle");
+    const ruleNoticeText = document.getElementById("ruleNoticeText");
+    const triggerCleanBtn = document.getElementById("triggerCleanBtn");
+    
+    const confirmModal = new bootstrap.Modal(document.getElementById("confirmCleanModal"));
+    const confirmDetails = document.getElementById("confirmDetails");
+    const confirmCleanExecuteBtn = document.getElementById("confirmCleanExecuteBtn");
+
+    const ruleExplanations = {
+        'not_null': {
+            title: 'Not Null Condition',
+            text: 'Removes all rows where the selected column cell is empty, null, or has whitespace.'
+        },
+        'no_duplicate': {
+            title: 'Not Duplicate Condition',
+            text: 'Filters the column for identical values. Keeps the first record and permanently deletes all subsequent copies.'
+        },
+        'valid_email': {
+            title: 'Valid Email Address Pattern',
+            text: 'Verifies standard email patterns. Deletes records where email inputs fail the verification format check.'
+        },
+        'valid_phone': {
+            title: 'Valid Phone Number Pattern',
+            text: 'Strips out formatting and checks if phone entry has 7 or more digits. Removes records containing fewer numbers.'
+        }
+    };
+
+    // Notice board helper update
+    function updateNoticeBoard() {
+        const ruleVal = cleanRule.value;
+        if (ruleVal && ruleExplanations[ruleVal]) {
+            ruleNoticeCard.classList.remove("d-none");
+            ruleNoticeTitle.innerText = ruleExplanations[ruleVal].title;
+            ruleNoticeText.innerText = ruleExplanations[ruleVal].text;
+        } else {
+            ruleNoticeCard.classList.add("d-none");
+        }
+    }
+
+    cleanRule.addEventListener("change", updateNoticeBoard);
+
+    // Show warning confirmation modal
+    triggerCleanBtn.addEventListener("click", function() {
+        const colVal = cleanColumn.value;
+        const colText = cleanColumn.options[cleanColumn.selectedIndex].text;
+        const ruleVal = cleanRule.value;
+        const ruleText = cleanRule.options[cleanRule.selectedIndex].text;
+
+        if (!colVal || !ruleVal) {
+            alert("Please select both a target column and an integrity condition rule.");
+            return;
+        }
+
+        confirmDetails.innerHTML = `
+            <strong>Target Column:</strong> ${colText} <br>
+            <strong>Condition Rule:</strong> ${ruleText} <br>
+            <strong>SQL Scope:</strong> Permanently scans and deletes records violating this check.
+        `;
+
+        confirmModal.show();
+    });
+
+    // Execute deletion cleaning rules via AJAX
+    confirmCleanExecuteBtn.addEventListener("click", function() {
+        const colVal = cleanColumn.value;
+        const ruleVal = cleanRule.value;
+        
+        this.disabled = true;
+        this.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span>Executing Cleaning...`;
+
+        const formData = new FormData();
+        formData.append("column", colVal);
+        formData.append("rule", ruleVal);
+
+        fetch("/api/clean", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(data => { throw new Error(data.error || "Failed to execute clean"); });
+            }
+            return res.json();
+        })
+        .then(data => {
+            confirmModal.hide();
+            this.disabled = false;
+            this.innerText = "Delete Records & Clean";
+            
+            // Redirect to dashboard with a flash message
+            alert(`Clean operation completed!\nRemoved ${data.deleted_count} rows from database.`);
+            window.location.href = "/dashboard";
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Error running cleaner: " + err.message);
+            this.disabled = false;
+            this.innerText = "Delete Records & Clean";
+            confirmModal.hide();
+        });
+    });
+});
+</script>
+{% endblock %}

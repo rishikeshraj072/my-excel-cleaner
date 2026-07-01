@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Field Registry - Excel Cleaner{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 animate-fade-in">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8">
+            <h1 class="font-outfit fw-bold text-dark mb-1">Field Registry</h1>
+            <p class="text-muted">Manage dynamic schema definitions and track usage frequency across worksheets</p>
+        </div>
+    </div>
+
+    <!-- Registry Card -->
+    <div class="card glass-panel">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="registryTable">
+                    <thead>
+                        <tr class="table-header-row font-outfit">
+                            <th>ID</th>
+                            <th>Field Display Name</th>
+                            <th>Normalized Name</th>
+                            <th>Data Type</th>
+                            <th class="text-center">Active</th>
+                            <th class="text-center">Searchable</th>
+                            <th class="text-center">Usage Count</th>
+                            <th>Created At</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if fields %}
+                            {% for field in fields %}
+                            <tr data-field-id="{{ field.id }}">
+                                <td><span class="badge bg-secondary font-outfit">#{{ field.id }}</span></td>
+                                <td><strong class="text-dark">{{ field.field_name }}</strong></td>
+                                <td><code class="text-primary fw-semibold">{{ field.normalized_name }}</code></td>
+                                <td><span class="badge bg-light border border-secondary-subtle text-muted">{{ field.data_type }}</span></td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input toggle-status" type="checkbox" role="switch" 
+                                               data-type="is_active" {% if field.is_active %}checked{% endif %}>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="form-check form-switch d-inline-block">
+                                        <input class="form-check-input toggle-status" type="checkbox" role="switch" 
+                                               data-type="searchable" {% if field.searchable %}checked{% endif %}>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary rounded-pill px-3">{{ field.usage_count }} files</span>
+                                </td>
+                                <td><span class="text-muted small">{{ field.created_at.strftime('%Y-%m-%d %H:%M') }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-address-book fs-2 mb-3 d-block text-secondary"></i>
+                                    No custom fields registered yet. Upload an Excel sheet to automatically populate this registry.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const toggles = document.querySelectorAll(".toggle-status");
+    
+    toggles.forEach(toggle => {
+        toggle.addEventListener("change", function() {
+            const row = this.closest("tr");
+            const fieldId = row.getAttribute("data-field-id");
+            const property = this.getAttribute("data-type");
+            const value = this.checked;
+            
+            this.disabled = true;
+            
+            const payload = {};
+            payload[property] = value;
+            
+            fetch(`/api/fields/${fieldId}/status`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error("Failed to update status");
+                }
+                return res.json();
+            })
+            .then(data => {
+                this.disabled = false;
+                row.classList.add("table-success-glow");
+                setTimeout(() => row.classList.remove("table-success-glow"), 1000);
+            })
+            .catch(err => {
+                console.error(err);
+                this.checked = !value;
+                this.disabled = false;
+                alert("Could not update field property. Please try again.");
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
