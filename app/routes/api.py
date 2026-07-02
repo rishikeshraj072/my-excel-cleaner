@@ -199,17 +199,18 @@ def update_field_status(field_id):
 def clean_records():
     from app.services.cleaner_service import CleanerService
     
-    column = request.form.get('column', '').strip()
-    rule = request.form.get('rule', '').strip()
+    data = request.json or {}
+    rules = data.get('rules', [])
     
-    if not column or not rule:
-        return jsonify({"error": "Missing column or cleaning rule parameters"}), 400
+    if not rules:
+        return jsonify({"error": "No data cleaning rules specified"}), 400
         
     try:
-        deleted_count = CleanerService.clean_records(column, rule)
+        results = CleanerService.clean_pipeline(rules)
         return jsonify({
-            "message": "Cleaning operation executed successfully",
-            "deleted_count": deleted_count
+            "message": "Cleaning pipeline executed successfully",
+            "total_deleted": results["total_deleted"],
+            "details": results["details"]
         }), 200
     except ValueError as e:
         return jsonify({"error": str(e)}), 400

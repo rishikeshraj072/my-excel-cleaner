@@ -2,12 +2,25 @@ import re
 import logging
 from app.extensions import db
 from app.models.record import MasterRecord
+from app.models.field import FieldRegistry
+from app.models.cleaning_log import CleaningLog
 
 logger = logging.getLogger(__name__)
 
 MASTER_COLUMNS = {'name', 'email', 'phone', 'company', 'city', 'state', 'country'}
 
 class CleanerService:
+    @staticmethod
+    def get_column_display_name(column_identifier):
+        """Resolves internal column names or IDs to human-readable titles"""
+        if column_identifier in MASTER_COLUMNS:
+            return column_identifier.capitalize()
+        try:
+            field = FieldRegistry.query.get(int(column_identifier))
+            return field.field_name if field else f"Custom Field #{column_identifier}"
+        except (ValueError, TypeError):
+            return str(column_identifier)
+
     @staticmethod
     def clean_records(column_identifier, rule):
         """
@@ -89,3 +102,49 @@ class CleanerService:
             logger.info(f"Successfully deleted {deleted_count} records violating rule '{rule}' on column '{column_identifier}'")
             
         return deleted_count
+
+    @classmethod
+    def clean_pipeline(cls, rules):
+        """
+        Applies a batch pipeline of cleaning rules sequentially.
+        rules: list of dicts [{"column": "phone", "rule": "valid_phone"}, ...]
+        Returns a summary dictionary of executed operations.
+        """
+        results_details = []
+        total_deleted = 0
+        
+        for rule_cfg in rules:
+            col_identifier = rule_cfg.get('column', '').strip()
+            rule_type = rule_cfg.get('rule', '').strip()
+            
+            if not col_identifier or not rule_type:
+                continue
+                
+            # Execute standard single column clean
+            deleted_count = cls.clean_records(col_identifier, rule_type)
+            col_display = cls.get_column_display_name(col_identifier)
+            
+            # Record execution in the CleaningLog database table
+            log_entry = CleaningLog(
+                column_identifier=col_identifier,
+                column_name=col_display,
+                rule_applied=rule_type,
+                records_deleted=deleted_count
+            )
+            db.session.add(log_entry)
+            
+            total_deleted += deleted_count
+            results_details.append({
+                "column_identifier": col_identifier,
+                "column_name": col_display,
+                "rule": rule_type,
+                "deleted": deleted_count
+            })
+            
+        # Commit all logging entries
+        db.session.commit()
+        
+        return {
+            "total_deleted": total_deleted,
+            "details": results_details
+        }

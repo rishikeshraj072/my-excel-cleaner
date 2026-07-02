@@ -79,6 +79,61 @@
         </div>
     </div>
 
+    <!-- Data Cleaning Metrics Row -->
+    <div class="row g-3 mb-4 animate-fade-in">
+        <!-- Metric Card 5: Total Cleaned -->
+        <div class="col-md-3">
+            <div class="metric-card" style="border-left: 4px solid var(--primary);">
+                <div class="metric-info">
+                    <div class="metric-value font-outfit">{{ "{:,}".format(total_cleaned) }}</div>
+                    <div class="metric-label">Total Cleaned Records</div>
+                </div>
+                <div class="metric-icon" style="color: var(--primary);">
+                    <i class="fa-solid fa-broom"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Metric Card 6: Dummy Deleted -->
+        <div class="col-md-3">
+            <div class="metric-card" style="border-left: 4px solid #ef4444;">
+                <div class="metric-info">
+                    <div class="metric-value font-outfit">{{ "{:,}".format(dummy_deleted) }}</div>
+                    <div class="metric-label">Blank / Null Purged</div>
+                </div>
+                <div class="metric-icon text-danger">
+                    <i class="fa-solid fa-eraser"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Metric Card 7: Duplicates Removed -->
+        <div class="col-md-3">
+            <div class="metric-card" style="border-left: 4px solid #ffb300;">
+                <div class="metric-info">
+                    <div class="metric-value font-outfit">{{ "{:,}".format(duplicate_deleted) }}</div>
+                    <div class="metric-label">Duplicates Removed</div>
+                </div>
+                <div class="metric-icon" style="color: #ffb300;">
+                    <i class="fa-solid fa-clone"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Metric Card 8: Invalid Formats Purged -->
+        <div class="col-md-3">
+            <div class="metric-card" style="border-left: 4px solid #a80000;">
+                <div class="metric-info">
+                    <div class="metric-value font-outfit">{{ "{:,}".format(invalid_deleted) }}</div>
+                    <div class="metric-label">Malformed Inputs Removed</div>
+                </div>
+                <div class="metric-icon" style="color: #a80000;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Filter Console Panel -->
     <div class="card glass-panel mb-4 animate-fade-in">
         <div class="card-body p-4">
@@ -168,6 +223,61 @@
             <!-- Table Footer Controls (Pagination) -->
             <div class="d-flex flex-wrap justify-content-between align-items-center p-4" id="paginationControls">
                 <!-- Resolved dynamically in JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Cleaning Audit Log Card -->
+    <div class="card glass-panel mb-4 animate-fade-in">
+        <div class="card-body p-4">
+            <h5 class="font-outfit fw-semibold text-primary mb-3">
+                <i class="fa-solid fa-clock-rotate-left me-2"></i> Recent Data Cleaning Activity Logs
+            </h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr class="table-header-row">
+                            <th>Executed At</th>
+                            <th>Target Column</th>
+                            <th>Applied Cleaning Rule</th>
+                            <th class="text-center">Records Deleted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_cleans %}
+                            {% for log in recent_cleans %}
+                            <tr>
+                                <td class="text-muted font-outfit">{{ log.executed_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td class="fw-semibold text-dark">{{ log.column_name }}</td>
+                                <td>
+                                    <span class="badge rounded-pill bg-light text-primary border border-primary-subtle px-3 py-2">
+                                        {% if log.rule_applied == 'not_null' %}
+                                            Not Null
+                                        {% elif log.rule_applied == 'no_duplicate' %}
+                                            Not Duplicate
+                                        {% elif log.rule_applied == 'valid_email' %}
+                                            Valid Email Format
+                                        {% elif log.rule_applied == 'valid_phone' %}
+                                            Valid Phone Format
+                                        {% else %}
+                                            {{ log.rule_applied }}
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td class="text-center fw-bold text-danger font-outfit">
+                                    {{ "{:,}".format(log.records_deleted) }} rows
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    <i class="fa-solid fa-circle-info me-1"></i> No data cleaning operations have been run yet.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
